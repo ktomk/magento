@@ -1,29 +1,25 @@
 
-## Dockerized Magento Enterprise 1.14.2.4 Preparations
+# Dockerized Magento Enterprise 1.14.2.4 Preparations
 
-The web-server will be bound to your local ports 80 and 443. In order to access the shop you must add a hosts file entry for `magento.dev`.
-
-### For Mac Users
-
-# Prepare VM dependencies
+## Prepare VM dependencies (MAC)
 ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew install docker docker-machine docker-compose docker-machine-nfs && docker -v && docker-machine -v && docker-compose -v && brew cleanup
 
-# Setup Dev Environment
+## Setup Dev Environment
 docker-machine create --virtualbox-memory "4096" --virtualbox-disk-size "20000" --virtualbox-cpu-count "2" --driver virtualbox dev
 eval "$(docker-machine env dev)"
 docker-machine-nfs dev -n="-alldirs -maproot=0"
 
-# Clone Repository
+## Clone Repository
 cd /users/btamm/sites && git clone git@github.com:brandontamm/magento.git && cd magento
 
-# Build Dev Environment
+## Build Dev Environment
 docker-compose up
 
-# Add Domain Name to OSX Localhost
+## Add Domain Name to OSX Localhost
 sudo sh -c "echo 192.168.99.100 magento.dev >> /etc/hosts"
 
-## Usage
+# Usage
 
 You can control the project using the built-in `magento`-script which is basically just a **wrapper for docker and docker-compose** that offers some **convenience features**:
 
@@ -46,10 +42,6 @@ You can control the project using the built-in `magento`-script which is basical
 **Note**: The `magento`-script is just a small wrapper around `docker-compose`. You can just use [docker-compose](https://docs.docker.com/compose/) directly.
 
 ## Components
-
-### Overview
-
-The dockerized Magento project consists of the following components:
 
 - **[docker images](docker-images)**
   1. a [php 5.5](docker-images/php/5.5/Dockerfile) image
