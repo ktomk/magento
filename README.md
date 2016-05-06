@@ -14,8 +14,8 @@ docker-machine create --virtualbox-memory "4096" --virtualbox-disk-size "20000" 
 eval "$(docker-machine env dev)"
 docker-machine-nfs dev -n="-alldirs -maproot=0"
 
-# Import Repository to Bitbucket FIRST, then clone locally
-cd /users/btamm/sites && git clone git@bitbucket.org:brandontamm/ceg-vm.git && mv ceg-vm quickattach && cd quickattach
+# Clone Repository
+cd /users/btamm/sites && git clone git@github.com:brandontamm/magento.git && cd magento
 
 # Build Dev Environment
 docker-compose up
