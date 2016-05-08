@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
 
 #####################################
 # Update the Magento Installation
@@ -56,6 +58,46 @@ function runForever() {
 	done
 }
 
+#####################################
+# Check if mysql service is running
+# Arguments:
+#   None
+# Returns:
+#   bool
+#####################################
+function mysqlIsRunning()
+{
+    2>/dev/null mysql -u"${MYSQL_USER}" --password="${MYSQL_PASSWORD}" -h"${MYSQL_HOST}" -e "exit"
+}
+
+#####################################
+# Wait until mysql service is running
+# Arguments:
+#   None
+# Returns:
+#   0 - waiting for mysql succeeded, 2 - failed up after 10 tries
+#####################################
+function mysqlWait()
+{
+    mysql --version
+    mysql_tries=1
+    while ! mysqlIsRunning; do
+        echo "waiting for mysql to become alive (${mysql_tries})..."
+        sleep 1
+        ((mysql_tries++))
+        if [ ${mysql_tries} -gt 10 ]; then
+            break;
+        fi
+    done
+    if mysqlIsRunning; then
+        echo "Mysql is Reported Up and Running"
+        return 0
+    else
+        echo "Mysql is not running, giving up after ${mysql_tries} attempts"
+        return 2
+    fi
+}
+
 # Check if the MAGENTO_ROOT direcotry has been specified
 if [ -z "$MAGENTO_ROOT" ]
 then
@@ -89,9 +131,9 @@ fi
 echo "Preparing the Magerun Configuration"
 substitute-env-vars.sh /etc /etc/n98-magerun.yaml.tmpl
 
-echo "Starting with blank database"
-magerun --skip-root-check --root-dir="$MAGENTO_ROOT" db:create
-magerun --skip-root-check --root-dir="$MAGENTO_ROOT" install --noDownload --dbHost="$MYSQL_HOST" --dbUser="$MYSQL_USER" --dbPass="$MYSQL_PASSWORD" --dbName="$MYSQL_DATABASE" --installSampleData="no" --useDefaultConfigParams="yes"  --installationFolder="./" --baseUrl="http://$DOMAIN"
+echo "Starting Installation"
+mysqlWait
+magerun --skip-root-check --root-dir="$MAGENTO_ROOT" install --noDownload --dbHost="$MYSQL_HOST" --dbUser="$MYSQL_USER" --dbPass="$MYSQL_PASSWORD" --dbName="$MYSQL_DATABASE" --installSampleData="no" --useDefaultConfigParams="yes" --installationFolder="$MAGENTO_ROOT" --baseUrl="http://$DOMAIN"
 
 echo "Installing Magento"
 updateMagento
